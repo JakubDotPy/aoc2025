@@ -1,0 +1,11 @@
+[project]
+name = "support"
+version = "0.1.0"
+description = "Support functions for Advent of Code 2024"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+download-input = "support:download_input"
+new-day = "support:new_day"
+submit = "support:submit_solution"
