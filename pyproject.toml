@@ -32,9 +32,11 @@ addopts = "-m 'not (solved or template)' -s"
 [tool.mypy]
 explicit_package_bases = true
 disallow_untyped_defs = true  # everything must be typed
+exclude = ["support.*"]
 
 [tool.ruff]
 line-length = 100
+exclude = ["support.*"]
 
 [tool.ruff.format]
 # Prefer single quotes over double quotes.

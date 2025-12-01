@@ -105,10 +105,9 @@ def submit_solution() -> int:
     if RIGHT in contents:
         print(f'\033[42m{RIGHT}\033[m')
         return 0
-    else:
-        # unexpected output?
-        print(contents)
-        return 1
+    # unexpected output?
+    print(contents)
+    return 1
 
 
 def download_input() -> int:
@@ -309,7 +308,7 @@ class Pointer:
     x: int = 0
     y: int = 0
     direction: Direction4 = None
-    grid: 'Grid' = field(init=False, repr=False)
+    grid: Grid = field(init=False, repr=False)
 
     def move(self, n: int = 1) -> Pointer:
         if not self.direction:
@@ -329,7 +328,7 @@ class Pointer:
         try:
             value = self.grid[(x, y)]
         except KeyError:
-            raise OutOfBounds()
+            raise OutOfBounds
         else:
             return value
 
@@ -369,14 +368,14 @@ class Pointer:
         return hash(self.coords + self.direction.value)
 
     @staticmethod
-    def adjacent_4(x: int, y: int) -> Generator[tuple[int, int], None, None]:
+    def adjacent_4(x: int, y: int) -> Generator[tuple[int, int]]:
         yield x, y - 1
         yield x + 1, y
         yield x, y + 1
         yield x - 1, y
 
     @staticmethod
-    def adjacent_8(x: int, y: int) -> Generator[tuple[int, int], None, None]:
+    def adjacent_8(x: int, y: int) -> Generator[tuple[int, int]]:
         for y_d in (-1, 0, 1):
             for x_d in (-1, 0, 1):
                 if y_d == x_d == 0:
@@ -416,7 +415,7 @@ class Grid(dict):
 
     @staticmethod
     def parse_coords_hash(s: str) -> set[tuple[int, int]]:
-        """use for walls etc."""
+        """Use for walls etc."""
         coords = set()
         for y, line in enumerate(s.splitlines()):
             for x, c in enumerate(line):
