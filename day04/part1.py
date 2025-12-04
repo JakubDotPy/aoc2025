@@ -1,26 +1,47 @@
 import argparse
+import contextlib
 import os.path
 
 import pytest
 
 import support
+from support import adjacent_8
+from support import parse_coords_char
 
 INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
 
 # NOTE: paste test text here
 INPUT_S = """\
-
+..@@.@@@@.
+@@@.@.@.@@
+@@@@@.@.@@
+@.@@@@..@.
+@@.@@@@.@@
+.@@@@@@@.@
+.@.@.@.@@@
+@.@@@.@@@@
+.@@@@@@@@.
+@.@.@@@.@.
 """
-EXPECTED = 1
+EXPECTED = 13
 
 
 def compute(s: str) -> int:
-    # TODO: implement solution here!
+    total = 0
+    grid = parse_coords_char(s)
+    for coord in grid:
+        if grid[coord] == '.':
+            continue
+        around_this = 0
+        for adj_coord in adjacent_8(*coord):
+            with contextlib.suppress(KeyError):
+                around_this += grid[adj_coord] == '@'
+        total += around_this < 4
 
-    return 0
+    return total
 
 
-@pytest.mark.template
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     ((INPUT_S, EXPECTED),),
