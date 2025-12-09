@@ -1,10 +1,9 @@
 import argparse
 import os.path
+from collections.abc import Generator
 from functools import cache
-from typing import Generator
 
 import pytest
-
 import support
 
 INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
@@ -30,10 +29,10 @@ INPUT_S = """\
 """
 EXPECTED = 40
 
+
 def load_splitters(s: str) -> Generator[set[int]]:
     yield from (
-        set(idx for idx, char in enumerate(row) if char == '^')
-        for row in s.splitlines()[2::2]
+        set(idx for idx, char in enumerate(row) if char == '^') for row in s.splitlines()[2::2]
     )
 
 
@@ -43,23 +42,21 @@ def compute(s: str) -> int:
 
     @cache
     def count_timelines(level: int, position: int) -> int:
-        if level == len(splitters): 
+        if level == len(splitters):
             return 1
 
         if position in splitters[level]:
             # Hit a splitter: particle splits into two timelines
-            return (
-                count_timelines(level + 1, position - 1) +
-                count_timelines(level + 1, position + 1)
+            return count_timelines(level + 1, position - 1) + count_timelines(
+                level + 1, position + 1
             )
-        else:
-            # No splitter: continue straight
-            return count_timelines(level + 1, position)
+        # No splitter: continue straight
+        return count_timelines(level + 1, position)
 
     return count_timelines(0, start)
 
 
-# @pytest.mark.solved
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     ((INPUT_S, EXPECTED),),

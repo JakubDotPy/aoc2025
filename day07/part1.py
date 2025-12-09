@@ -1,9 +1,8 @@
 import argparse
 import os.path
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
-
 import support
 
 INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
@@ -32,8 +31,7 @@ EXPECTED = 21
 
 def load_splitters(s: str) -> Generator[set[int]]:
     yield from (
-        set(idx for idx, char in enumerate(row) if char == '^')
-        for row in s.splitlines()[2::2]
+        set(idx for idx, char in enumerate(row) if char == '^') for row in s.splitlines()[2::2]
     )
 
 
@@ -52,7 +50,7 @@ def compute(s: str) -> int:
     return total_splits
 
 
-# @pytest.mark.solved
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     ((INPUT_S, EXPECTED),),

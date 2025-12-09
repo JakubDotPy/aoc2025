@@ -1,0 +1,92 @@
+import argparse
+import heapq
+import itertools
+import os.path
+
+import numpy as np
+import pytest
+import support
+
+INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+
+# NOTE: paste test text here
+INPUT_S = """\
+162,817,812
+57,618,57
+906,360,560
+592,479,940
+352,342,300
+466,668,158
+542,29,236
+431,825,988
+739,650,466
+52,470,668
+216,146,977
+819,987,18
+117,168,530
+805,96,715
+346,949,466
+970,615,88
+941,993,340
+862,61,35
+984,92,344
+425,690,689
+"""
+EXPECTED = 25272
+
+
+def compute(s: str) -> int:
+    # NOTE: for test do 10 steps of the connecting process
+    #  For the actual attempt do 1000 steps.
+
+    # create points
+    points = {tuple(map(int, line.split(','))) for line in s.splitlines()}
+    # add to heap (priority queue by distance)
+    heap = []
+    for a, b in itertools.combinations(points, 2):
+        a_arr = np.array(a)
+        b_arr = np.array(b)
+        dist = np.linalg.norm(a_arr - b_arr)
+        heapq.heappush(heap, (dist, a, b))
+
+    # create a set of sets
+    junctions = list({p} for p in points)
+    while len(junctions) != 1:
+        dist, a, b = heapq.heappop(heap)
+
+        # merge the two sets
+        # find the sets containing a and b, add them together and back
+        set_a = next(s for s in junctions if a in s)
+        set_b = next(s for s in junctions if b in s)
+
+        # only merge if they are different sets
+        if set_a is not set_b:
+            junctions.remove(set_a)
+            junctions.remove(set_b)
+            junctions.append(set_a | set_b)
+
+    return a[0] * b[0]
+
+
+@pytest.mark.solved
+@pytest.mark.parametrize(
+    ('input_s', 'expected'),
+    ((INPUT_S, EXPECTED),),
+)
+def test(input_s: str, expected: int) -> None:
+    assert compute(input_s) == expected
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
+    args = parser.parse_args()
+
+    with open(args.data_file) as f, support.timing():
+        print(compute(f.read()))
+
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
