@@ -1,7 +1,9 @@
-advent of code 2025
+advent of code 2024
 ===================
 
 https://adventofcode.com/2025
+
+![Advent of Code Screenshot](screenshots/aoc-screenshot.png)
 
 ### about
 
