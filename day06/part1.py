@@ -1,13 +1,13 @@
 import argparse
 import functools
-import os.path
 from operator import add
 from operator import mul
+from pathlib import Path
 
 import pytest
 import support
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -21,22 +21,22 @@ EXPECTED = 4277556
 
 def compute(s: str) -> int:
     rows = s.splitlines()
-    columns = zip(*(row.split() for row in rows))
+    columns = zip(*(row.split() for row in rows), strict=False)
 
     total = 0
     for column in columns:
         *nums, op_char = column
         operator = mul if op_char == '*' else add
-        nums = map(int, nums)
-        total += functools.reduce(operator, nums)
+        nums_iter = map(int, nums)
+        total += functools.reduce(operator, nums_iter)
 
     return total
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
-    ((INPUT_S, EXPECTED),),
+    [(INPUT_S, EXPECTED)],
 )
 def test(input_s: str, expected: int) -> None:
     assert compute(input_s) == expected
@@ -47,7 +47,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

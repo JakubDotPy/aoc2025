@@ -1,15 +1,12 @@
 import argparse
-import os.path
+from pathlib import Path
 
-import matplotlib.pyplot as plt
-import networkx
 import networkx as nx
 import pytest
 import support
-from networkx.algorithms.shortest_paths.generic import all_shortest_paths
 from networkx.algorithms.simple_paths import all_simple_paths
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -38,11 +35,11 @@ def parse_to_dict(s: str) -> ParsedDict:
 
 
 def compute(s: str) -> int:
-    G = nx.DiGraph(parse_to_dict(s))
-    return sum(1 for _ in all_simple_paths(G, 'you', 'out'))
+    g = nx.DiGraph(parse_to_dict(s))
+    return sum(1 for _ in all_simple_paths(g, 'you', 'out'))
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     [(INPUT_S, EXPECTED)],
@@ -56,7 +53,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

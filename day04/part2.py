@@ -1,15 +1,13 @@
 import argparse
 import contextlib
-import os.path
-from tokenize import group
+from pathlib import Path
 
 import pytest
-
 import support
 from support import adjacent_8
 from support import parse_coords_char
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -26,8 +24,12 @@ INPUT_S = """\
 """
 EXPECTED = 43
 
+MIN_ADJACENT_THRESHOLD = 4
 
-def do_step(grid: dict[tuple[int, int], str]):
+
+def do_step(
+    grid: dict[tuple[int, int], str],
+) -> tuple[dict[tuple[int, int], str], set[tuple[int, int]]]:
     to_remove = set()
     for coord, value in grid.items():
         if value != '@':
@@ -36,7 +38,7 @@ def do_step(grid: dict[tuple[int, int], str]):
         for adj_coord in adjacent_8(*coord):
             with contextlib.suppress(KeyError):
                 around_this += grid[adj_coord] == '@'
-        if around_this < 4:
+        if around_this < MIN_ADJACENT_THRESHOLD:
             to_remove.add(coord)
 
     for c in to_remove:
@@ -48,7 +50,7 @@ def do_step(grid: dict[tuple[int, int], str]):
 def compute(s: str) -> int:
     total = 0
     grid = parse_coords_char(s)
-    removed = {None}
+    removed: set[tuple[int, int]] = {(0, 0)}  # dummy value to start the loop
 
     while removed:
         grid, removed = do_step(grid)
@@ -57,10 +59,10 @@ def compute(s: str) -> int:
     return total
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
-    ((INPUT_S, EXPECTED),),
+    [(INPUT_S, EXPECTED)],
 )
 def test(input_s: str, expected: int) -> None:
     assert compute(input_s) == expected
@@ -71,7 +73,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

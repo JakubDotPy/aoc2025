@@ -1,11 +1,11 @@
 import argparse
-import os.path
-import pulp
+from pathlib import Path
 
+import pulp
 import pytest
 import support
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -16,35 +16,28 @@ INPUT_S = """\
 EXPECTED = 33
 
 
-def parse_line(line: str):
+def parse_line(line: str) -> tuple[int, list[list[int]], tuple[int, ...]]:
     lights_s, *buttons_s, joltages_s = line.split(' ')
 
     lights = int(
-        lights_s
-        .strip('[]')
-        .replace('.', '0')
-        .replace('#', '1')
-        [::-1]  # LSB
-        , 2  # convert from binary
+        lights_s.strip('[]').replace('.', '0').replace('#', '1')[::-1],  # LSB
+        2,  # convert from binary
     )
-    buttons = [
-        map(int, button_s[1:-1].split(','))
-        for button_s in buttons_s
-    ]
+    buttons = [list(map(int, button_s[1:-1].split(','))) for button_s in buttons_s]
 
     joltages = tuple(map(int, joltages_s.strip('{}').split(',')))
 
     return lights, buttons, joltages
 
 
-def solve_one(buttons, joltages):
-    """Solve minimum button presses needed to achieve target joltages."""
+def solve_one(buttons: list[list[int]], joltages: tuple[int, ...]) -> int:
+    """Solve minimum button presses needed to achieve target _joltages."""
     button_effects = [list(button) for button in buttons]
 
     # create linear programming problem
-    problem = pulp.LpProblem("MinimizeButtonPresses", pulp.LpMinimize)
+    problem = pulp.LpProblem('MinimizeButtonPresses', pulp.LpMinimize)
     button_press_counts = [
-        pulp.LpVariable(f"button_{i}_presses", lowBound=0, cat='Integer')
+        pulp.LpVariable(f'button_{i}_presses', lowBound=0, cat='Integer')
         for i in range(len(buttons))
     ]
 
@@ -72,7 +65,7 @@ def compute(s: str) -> int:
     return total
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     [(INPUT_S, EXPECTED)],
@@ -86,7 +79,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

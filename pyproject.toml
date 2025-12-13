@@ -50,6 +50,10 @@ select = ["ALL"]
 ignore = [
     "FIX", # ignore TODOs
     "TD",  # ignore TODOs syntax
+    "D100",
+    "D101",
+    "D102",
+    "D103",
     "D104",  # Missing docstring in public package (__init__.py)
     "D203",  # 1 blank line required before class docstring, incompatible with D211
     "D213",  # multi-line-summary-second-line D212
@@ -77,6 +81,9 @@ inline-quotes = "single"
     "D105",  # ...
     "D107",  # ...
     "S101",  # allow asserts in tests
+]
+"day06/part2.py" = [
+    "W291"
 ]
 
 [tool.uv.sources]

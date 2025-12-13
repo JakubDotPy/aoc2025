@@ -1,10 +1,10 @@
 import argparse
-import os.path
+from pathlib import Path
 
 import pytest
 import support
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -24,9 +24,9 @@ EXPECTED = 3
 
 
 def compute(s: str) -> int:
-    ranges, ingredients = s.split('\n\n')
-    ranges = {tuple(map(int, num_range.split('-'))) for num_range in ranges.splitlines()}
-    ingredients = set(map(int, ingredients.splitlines()))
+    ranges_s, ingredients_s = s.split('\n\n')
+    ranges = {tuple(map(int, num_range.split('-'))) for num_range in ranges_s.splitlines()}
+    ingredients = set(map(int, ingredients_s.splitlines()))
 
     total = 0
     for ing in ingredients:
@@ -38,10 +38,10 @@ def compute(s: str) -> int:
     return total
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
-    ((INPUT_S, EXPECTED),),
+    [(INPUT_S, EXPECTED)],
 )
 def test(input_s: str, expected: int) -> None:
     assert compute(input_s) == expected
@@ -52,7 +52,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

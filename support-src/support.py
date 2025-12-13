@@ -165,7 +165,7 @@ def new_day() -> None:
 
     # replace template mark with commented solved
     old = r'@pytest.mark.template'
-    new = r'# @pytest.mark.solved'
+    new = r'# # @pytest.mark.solved'
     pattern = re.compile(old)
     with Path.open(new_path / 'part1.py', 'r+') as f:
         contents = f.read()

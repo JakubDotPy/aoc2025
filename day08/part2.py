@@ -1,13 +1,13 @@
 import argparse
 import heapq
 import itertools
-import os.path
+from pathlib import Path
 
 import numpy as np
 import pytest
 import support
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -42,7 +42,7 @@ def compute(s: str) -> int:
     # create points
     points = {tuple(map(int, line.split(','))) for line in s.splitlines()}
     # add to heap (priority queue by distance)
-    heap = []
+    heap: list[tuple[float, tuple[int, ...], tuple[int, ...]]] = []
     for a, b in itertools.combinations(points, 2):
         a_arr = np.array(a)
         b_arr = np.array(b)
@@ -50,7 +50,7 @@ def compute(s: str) -> int:
         heapq.heappush(heap, (dist, a, b))
 
     # create a set of sets
-    junctions = list({p} for p in points)
+    junctions = [{p} for p in points]
     while len(junctions) != 1:
         dist, a, b = heapq.heappop(heap)
 
@@ -68,10 +68,10 @@ def compute(s: str) -> int:
     return a[0] * b[0]
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
-    ((INPUT_S, EXPECTED),),
+    [(INPUT_S, EXPECTED)],
 )
 def test(input_s: str, expected: int) -> None:
     assert compute(input_s) == expected
@@ -82,7 +82,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

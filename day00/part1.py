@@ -1,11 +1,10 @@
 import argparse
-import os.path
+from pathlib import Path
 
 import pytest
-
 import support
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -14,7 +13,7 @@ INPUT_S = """\
 EXPECTED = 1
 
 
-def compute(s: str) -> int:
+def compute(s: str) -> int:  # noqa: ARG001
     # TODO: implement solution here!
 
     return 0
@@ -34,7 +33,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

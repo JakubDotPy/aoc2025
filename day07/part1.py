@@ -1,11 +1,11 @@
 import argparse
-import os.path
 from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 import support
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -31,7 +31,7 @@ EXPECTED = 21
 
 def load_splitters(s: str) -> Generator[set[int]]:
     yield from (
-        set(idx for idx, char in enumerate(row) if char == '^') for row in s.splitlines()[2::2]
+        {idx for idx, char in enumerate(row) if char == '^'} for row in s.splitlines()[2::2]
     )
 
 
@@ -50,10 +50,10 @@ def compute(s: str) -> int:
     return total_splits
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
-    ((INPUT_S, EXPECTED),),
+    [(INPUT_S, EXPECTED)],
 )
 def test(input_s: str, expected: int) -> None:
     assert compute(input_s) == expected
@@ -64,7 +64,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

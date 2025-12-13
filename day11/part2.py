@@ -1,17 +1,12 @@
 import argparse
-import math
-import os.path
 from collections import defaultdict
+from pathlib import Path
 
-import matplotlib.pyplot as plt
-import networkx
 import networkx as nx
 import pytest
 import support
-from networkx.algorithms.shortest_paths.generic import all_shortest_paths
-from networkx.algorithms.simple_paths import all_simple_paths
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -47,7 +42,7 @@ def parse_to_dict(s: str) -> ParsedDict:
 
 
 def compute(s: str) -> int:
-    G = nx.DiGraph(parse_to_dict(s))
+    g = nx.DiGraph(parse_to_dict(s))
 
     def node_mask(n: str) -> int:
         m = 0
@@ -57,18 +52,18 @@ def compute(s: str) -> int:
             m |= DAC_BIT
         return m
 
-    ways = defaultdict(lambda: defaultdict(int))
+    ways: defaultdict[str, defaultdict[int, int]] = defaultdict(lambda: defaultdict(int))
     ways['svr'][node_mask('svr')] = 1
 
-    for u in nx.topological_sort(G):
+    for u in nx.topological_sort(g):
         for mask, cnt in ways[u].items():
-            for v in G.successors(u):
+            for v in g.successors(u):
                 ways[v][mask | node_mask(v)] += cnt
 
     return ways['out'][BOTH]
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     [(INPUT_S, EXPECTED)],
@@ -82,7 +77,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

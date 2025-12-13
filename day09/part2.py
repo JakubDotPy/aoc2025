@@ -1,6 +1,6 @@
 import argparse
 import itertools
-import os.path
+from pathlib import Path
 
 import pytest
 import shapely
@@ -8,7 +8,7 @@ import support
 from shapely.geometry import Point
 from shapely.geometry import box
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S_1 = """\
@@ -75,10 +75,7 @@ def _rect_area(rect: shapely.Polygon) -> int:
 
 
 def compute(s: str) -> int:
-    points = [
-        Point(map(int, row.split(',')))
-        for row in s.splitlines()
-    ]
+    points = [Point(map(int, row.split(','))) for row in s.splitlines()]
     polygon = shapely.Polygon(points)
     max_area = 0
 
@@ -90,7 +87,7 @@ def compute(s: str) -> int:
     return max_area
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     [
@@ -109,7 +106,7 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
+    with Path(args.data_file).open() as f, support.timing():
         print(compute(f.read()))
 
     return 0

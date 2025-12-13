@@ -2,14 +2,14 @@ import argparse
 import functools
 import heapq
 import itertools
-import os.path
 from operator import mul
+from pathlib import Path
 
 import numpy as np
 import pytest
 import support
 
-INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_TXT = Path(__file__).parent / 'input.txt'
 
 # NOTE: paste test text here
 INPUT_S = """\
@@ -37,14 +37,14 @@ INPUT_S = """\
 EXPECTED = 40
 
 
-def compute(s: str) -> int:
+def compute(s: str, num_steps: int) -> int:
     # NOTE: for test do 10 steps of the connecting process
     #  For the actual attempt do 1000 steps.
 
     # create points
     points = {tuple(map(int, line.split(','))) for line in s.splitlines()}
     # add to heap (priority queue by distance)
-    heap = []
+    heap: list[tuple[float, tuple[int, ...], tuple[int, ...]]] = []
     for a, b in itertools.combinations(points, 2):
         a_arr = np.array(a)
         b_arr = np.array(b)
@@ -52,8 +52,8 @@ def compute(s: str) -> int:
         heapq.heappush(heap, (dist, a, b))
 
     # create a set of sets
-    junctions = list({p} for p in points)
-    for _ in range(1_000):
+    junctions = [{p} for p in points]
+    for _ in range(num_steps):
         dist, a, b = heapq.heappop(heap)
 
         # merge the two sets
@@ -72,13 +72,13 @@ def compute(s: str) -> int:
     return functools.reduce(mul, lens[-3:])
 
 
-@pytest.mark.solved
+# @pytest.mark.solved
 @pytest.mark.parametrize(
-    ('input_s', 'expected'),
-    ((INPUT_S, EXPECTED),),
+    ('input_s', 'num_steps', 'expected'),
+    [(INPUT_S, 10, EXPECTED)],
 )
-def test(input_s: str, expected: int) -> None:
-    assert compute(input_s) == expected
+def test(input_s: str, num_steps: int, expected: int) -> None:
+    assert compute(input_s, num_steps) == expected
 
 
 def main() -> int:
@@ -86,8 +86,8 @@ def main() -> int:
     parser.add_argument('data_file', nargs='?', default=INPUT_TXT)
     args = parser.parse_args()
 
-    with open(args.data_file) as f, support.timing():
-        print(compute(f.read()))
+    with Path(args.data_file).open() as f, support.timing():
+        print(compute(f.read(), 1_000))
 
     return 0
 
