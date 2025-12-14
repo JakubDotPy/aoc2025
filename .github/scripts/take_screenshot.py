@@ -5,7 +5,7 @@ from PIL import Image
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
 
@@ -25,7 +25,11 @@ def setup_driver(cookie_value: str) -> webdriver.Chrome:
     driver = webdriver.Chrome(options=options)
     driver.get('https://adventofcode.com')
     driver.add_cookie(
-        {'name': 'session', 'value': cookie_value.lstrip('session='), 'domain': 'adventofcode.com'}
+        {
+            'name': 'session',
+            'value': cookie_value.removeprefix('session='),
+            'domain': 'adventofcode.com',
+        }
     )
     return driver
 
@@ -60,7 +64,7 @@ def take_screenshot(driver: webdriver.Chrome, url: str, selector: str, output_na
     """
     driver.get(url)
     element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, selector))
     )
     element.screenshot(output_name)
     crop_image(output_name, output_name)
@@ -78,14 +82,12 @@ def get_year() -> str:
 
 
 def main() -> None:
-    """Main entry point for the script.
-
-    Sets up the environment, captures a screenshot, and ensures proper cleanup of resources.
-    """
-    os.makedirs('screenshots', exist_ok=True)
+    """Set up environment, capture screenshot, and ensure proper cleanup of resources."""
+    Path('screenshots').mkdir(parents=True, exist_ok=True)
     cookie = os.getenv('COOKIE')
     if not cookie:
-        raise ValueError('COOKIE environment variable is not set.')
+        msg = 'COOKIE environment variable is not set.'
+        raise ValueError(msg)
 
     driver = setup_driver(cookie)
     year = get_year()

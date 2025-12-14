@@ -11,6 +11,7 @@ import shutil
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from dataclasses import field
@@ -19,9 +20,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from collections.abc import Generator
 
 ENV_FILE = Path(__file__).parent.parent.parent / '.env'
+
+_MS_TO_US_THRESHOLD = 100
 
 
 @contextlib.contextmanager
@@ -33,7 +37,7 @@ def timing(name: str = '') -> Generator[None]:
         after = time.time()
         t = (after - before) * 1000
         unit = 'ms'
-        if t < 100:
+        if t < _MS_TO_US_THRESHOLD:
             t *= 1000
             unit = 'μs'
         if name:
@@ -49,8 +53,8 @@ def _get_cookie_headers() -> dict[str, str]:
 
 def get_input(year: int, day: int) -> str:
     url = f'https://adventofcode.com/{year}/day/{day}/input'
-    req = urllib.request.Request(url, headers=_get_cookie_headers())
-    return urllib.request.urlopen(req).read().decode()
+    req = urllib.request.Request(url, headers=_get_cookie_headers())  # noqa: S310
+    return urllib.request.urlopen(req).read().decode()  # noqa: S310
 
 
 def get_year_day() -> tuple[int, int]:
@@ -79,7 +83,7 @@ def _post_answer(year: int, day: int, part: int, answer: int) -> str:
         data=params.encode(),
         headers=_get_cookie_headers(),
     )
-    resp = urllib.request.urlopen(req)
+    resp = urllib.request.urlopen(req)  # noqa: S310
 
     return resp.read().decode()
 
@@ -122,14 +126,15 @@ def download_input() -> int:
         else:
             break
     else:
-        raise SystemExit('timed out after attempting many times')
+        msg = 'timed out after attempting many times'
+        raise SystemExit(msg)
 
-    with open('input.txt', 'w') as f:
-        f.write(s)
+    Path('input.txt').write_text(s)
 
     lines = s.splitlines()
-    if len(lines) > 10:
-        for line in lines[:10]:
+    preview_line_limit = 10
+    if len(lines) > preview_line_limit:
+        for line in lines[:preview_line_limit]:
             print(line)
         print('...')
     else:
@@ -256,7 +261,7 @@ def print_coords_hash(coords: set[tuple[int, int]]) -> None:
     print(format_coords_hash(coords))
 
 
-class OutOfBounds(Exception):
+class OutOfBoundsError(Exception):
     pass
 
 
@@ -307,20 +312,25 @@ class Direction4(enum.Enum):
 class Pointer:
     x: int = 0
     y: int = 0
-    direction: Direction4 = None
+    direction: Direction4 | None = None
     grid: Grid = field(init=False, repr=False)
 
     def move(self, n: int = 1) -> Pointer:
         if not self.direction:
-            raise ValueError('pointer has no direction')
+            msg = 'pointer has no direction'
+            raise ValueError(msg)
         dx, dy = self.direction.value
         self.x += n * dx
         self.y += n * dy
         return self
 
-    def look(self, direction: Direction4 = None, n: int = 1) -> str:
+    def look(self, direction: Direction4 | None = None, n: int = 1) -> str:
         if not direction:
             direction = self.direction
+
+        if not direction:
+            msg = 'pointer has no direction'
+            raise ValueError(msg)
 
         dx, dy = direction.value
         x = self.x + n * dx
@@ -328,15 +338,15 @@ class Pointer:
         try:
             value = self.grid[(x, y)]
         except KeyError:
-            raise OutOfBounds
+            raise OutOfBoundsError from None
         else:
             return value
 
     @property
-    def coords(self):
+    def coords(self) -> tuple[int, int]:
         return self.x, self.y
 
-    def place_at(self, x, y):
+    def place_at(self, x: int, y: int) -> None:
         self.x = x
         self.y = y
 
@@ -345,7 +355,7 @@ class Pointer:
         return self.grid.get((self.x, self.y), None)
 
     @property
-    def state(self):
+    def state(self) -> tuple[tuple[int, int], Direction4 | None, str | None]:
         return self.coords, self.direction, self.value
 
     def __add__(self, other: Pointer) -> Pointer:
@@ -357,14 +367,16 @@ class Pointer:
     def __lt__(self, other: Pointer) -> bool:
         return self.x < other.x and self.y < other.y
 
-    def __eq__(self, other: Pointer) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Pointer):
+            return NotImplemented
         same_coords = self.x == other.x and self.y == other.y
         same_direction = self.direction == other.direction
         return same_coords and same_direction
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         if not self.direction:
-            return hash(self.coords + (0, 0))
+            return hash((*self.coords, 0, 0))
         return hash(self.coords + self.direction.value)
 
     @staticmethod
@@ -401,11 +413,11 @@ class Grid(dict):
             self.pointers.add(pointer)
 
     @property
-    def pointer(self):
+    def pointer(self) -> Pointer:
         return min(self.pointers)
 
     @classmethod
-    def from_string(cls, s: str, map_fn: callable = str) -> Grid:
+    def from_string(cls, s: str, map_fn: Callable[[str], str] = str) -> Grid:
         grid = cls()
         for y, line in enumerate(s.splitlines()):
             for x, char in enumerate(line):

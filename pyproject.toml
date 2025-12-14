@@ -38,11 +38,9 @@ addopts = "-m 'not (solved or template)' -s"
 [tool.mypy]
 explicit_package_bases = true
 disallow_untyped_defs = true  # everything must be typed
-exclude = ["support.*"]
 
 [tool.ruff]
 line-length = 100
-exclude = ["support.*"]
 
 [tool.ruff.format]
 # Prefer single quotes over double quotes.
@@ -77,7 +75,7 @@ inline-quotes = "single"
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore all directories named `tests`.
-"support/support.py" = [
+"support_src/support.py" = [
     "D100",  # don't check docstrings
     "D101",  # ...
     "D102",  # ...
@@ -91,4 +89,4 @@ inline-quotes = "single"
 ]
 
 [tool.uv.sources]
-support = { path = "support-src", editable = true }
+support = { path = "support_src", editable = true }
